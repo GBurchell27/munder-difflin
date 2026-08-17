@@ -2,22 +2,38 @@
 
 Guidance for AI agents working in this repository.
 
-## Pull requests — ask first
+## Git — user controls all remote actions
 
-**Never open, update, close, or delete a pull request without explicit user approval.**
+**The user owns git. Do not commit or push unless they explicitly ask in that conversation.**
 
-Before any GitHub PR action, stop and ask the user in chat. This includes:
+### Never without explicit approval
 
-- Creating a new PR
-- Pushing a branch intended for upstream review
-- Reopening or closing an existing PR
-- Deleting a PR branch on the remote
-- Force-pushing to a PR branch
-- Commenting on behalf of the user (unless they pasted the exact reply)
+- `git commit` (including `--amend`)
+- `git push` (any remote, any branch, including `-u`)
+- `git push --force` / `--force-with-lease`
+- Opening, updating, closing, or deleting a pull request
+- Deleting a remote branch
+- Commenting on GitHub on the user's behalf (unless they pasted the exact reply)
 
-When the user asks to prepare a PR, do the branch/commit work locally, run checks, summarize what will be included, and **wait for an explicit “yes, open it”** (or similar) before running `gh pr create`, `gh pr close`, or equivalent.
+### Allowed without asking (local work only)
 
-If review feedback arrives, propose fixes locally first; do not close the PR unless the user explicitly asks to abandon it.
+- Edit files in the working tree
+- Create or switch local branches
+- Stage files with `git add` **only when the user has already asked for a commit** — otherwise leave changes unstaged
+- Run read-only git commands (`git status`, `git diff`, `git log`, `git branch`)
+- Run checks (`npm run typecheck`, tests, etc.)
+
+### When the user asks you to prepare a PR or commit
+
+1. Make the code changes locally.
+2. Run relevant checks.
+3. Summarize what changed and which branch it is on.
+4. **Stop.** Wait for explicit approval before `git commit`, `git push`, or `gh pr create`.
+
+Phrases that count as approval: “commit this”, “push it”, “open the PR”, “yes, push to origin”.  
+Phrases that do **not** count: silence, “looks good”, “prepare a PR”, “get it ready” — those mean prepare only, not commit/push.
+
+If review feedback arrives, propose fixes locally first; do not close a PR unless the user explicitly asks to abandon it.
 
 ## Upstream contributions
 
@@ -36,6 +52,6 @@ Do not commit hardcoded personal assignments, project names, API keys, or machin
 - Local notes belong under `.docs/` (gitignored).
 - Runtime/user data belongs under the app’s harness home / userData paths, not in shared components.
 
-## Commits
+## Commits (when the user asks)
 
-Only create git commits when the user asks. When committing, write clear messages focused on *why*.
+Write clear messages focused on *why*. Follow the user's commit message style from recent `git log`. Do not commit secrets, `.env`, or built artifacts.
