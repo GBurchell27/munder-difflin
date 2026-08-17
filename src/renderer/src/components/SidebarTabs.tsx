@@ -8,8 +8,7 @@ const TABS: { key: SidebarTab; label: string; icon: IconName }[] = [
   { key: 'terminal', label: 'terminal', icon: 'terminal' },
   { key: 'git',      label: 'git',      icon: 'code' },
   { key: 'messages', label: 'messages', icon: 'bell' },
-  { key: 'traces',   label: 'traces',   icon: 'web' },
-  { key: 'projects', label: 'projects', icon: 'ledger' }
+  { key: 'traces',   label: 'traces',   icon: 'web' }
 ];
 
 export interface SidebarTabsProps {

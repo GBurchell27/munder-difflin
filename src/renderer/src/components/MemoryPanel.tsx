@@ -26,7 +26,7 @@ const MODELS: { id: ModelId; title: string; detail: string }[] = [
  * it on/off, and pick how it searches. Agents read/write it directly; this is
  * the human-facing window into the same memory.
  */
-export function MemoryPanel() {
+export function MemoryPanel({ docked = false }: { docked?: boolean }) {
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<MemoryStatus | null>(null);
   const [query, setQuery] = useState('');
@@ -74,7 +74,13 @@ export function MemoryPanel() {
   const canSearch = !!status?.available && !!status?.enabled;
 
   return (
-    <div style={{ position: 'absolute', bottom: 12, left: 12, width: open ? 380 : 'auto', zIndex: 40 }}>
+    <div style={{
+      position: docked ? 'relative' : 'absolute',
+      bottom: docked ? undefined : 12,
+      left: docked ? undefined : 12,
+      width: open ? 380 : 'auto',
+      zIndex: docked ? undefined : 40
+    }}>
       {!open ? (
         <button
           onClick={() => { setOpen(true); refreshStatus(); }}
