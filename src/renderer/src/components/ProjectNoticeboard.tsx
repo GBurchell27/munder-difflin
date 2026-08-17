@@ -1,25 +1,74 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Icon } from './Icon';
+
+const ASSIGNMENTS_FILE = 'assignments.json';
 
 interface ProjectAssignment {
   hire: string;
   project: string;
 }
 
-const PROJECTS: ProjectAssignment[] = [
-  { hire: 'Jim', project: 'marketing-control-room' },
-  { hire: 'Angela', project: '1SystematicReviewTools' },
-  { hire: 'Dwight (new)', project: 'EvidenceTableBuilder' },
-  { hire: 'Pam', project: 'study_screening_manual' },
-  { hire: 'Oscar', project: 'ai-systematicreview' },
-  { hire: 'Stanley', project: 'evidentia-systems' },
-  { hire: 'Ryan', project: 'aiautomationx' },
-  { hire: 'Kevin', project: 'SoftwareFactory' },
-  { hire: 'Creed (new)', project: 'prospero-scrape-leads' }
-];
+function parseAssignments(raw: string): ProjectAssignment[] {
+  const parsed = JSON.parse(raw) as unknown;
+  if (!Array.isArray(parsed)) return [];
+  return parsed.flatMap((entry) => {
+    if (!entry || typeof entry !== 'object') return [];
+    const hire = (entry as { hire?: unknown }).hire;
+    const project = (entry as { project?: unknown }).project;
+    if (typeof hire !== 'string' || typeof project !== 'string') return [];
+    const trimmedHire = hire.trim();
+    const trimmedProject = project.trim();
+    if (!trimmedHire || !trimmedProject) return [];
+    return [{ hire: trimmedHire, project: trimmedProject }];
+  });
+}
 
+/**
+ * Personal hire → project assignments. Loaded from
+ * `<harnessHome>/assignments.json` (never hardcoded in source).
+ */
 export function ProjectNoticeboard() {
   const [collapsed, setCollapsed] = useState(false);
+  const [assignments, setAssignments] = useState<ProjectAssignment[]>([]);
+  const [harnessHome, setHarnessHome] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const config = await window.cth.getConfig();
+        const home = config.harnessHome;
+        if (cancelled) return;
+        setHarnessHome(home);
+        if (!home) {
+          setAssignments([]);
+          setLoadError('No harness home configured yet.');
+          return;
+        }
+
+        const result = await window.cth.readFile(home, ASSIGNMENTS_FILE);
+        if (cancelled) return;
+
+        if (!result.ok) {
+          setAssignments([]);
+          setLoadError(`Create ${ASSIGNMENTS_FILE} in your harness home to populate this board.`);
+          return;
+        }
+
+        setAssignments(parseAssignments(result.content ?? '[]'));
+        setLoadError(null);
+      } catch (err) {
+        if (cancelled) return;
+        setAssignments([]);
+        setLoadError(err instanceof Error ? err.message : 'Could not load assignments.');
+      }
+    };
+
+    void load();
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <div style={{
@@ -52,8 +101,8 @@ export function ProjectNoticeboard() {
         }}>
           ASSIGNMENTS
         </div>
-        <Icon 
-          name={collapsed ? 'arrow-right' : 'code'} 
+        <Icon
+          name={collapsed ? 'arrow-right' : 'code'}
           size={0.8}
           style={{
             width: 14,
@@ -75,15 +124,30 @@ export function ProjectNoticeboard() {
           overflowY: 'auto',
           backgroundColor: 'var(--cth-paper-200)'
         }}>
-          {PROJECTS.map((assignment, idx) => (
+          {assignments.length === 0 ? (
+            <div style={{
+              fontFamily: 'var(--cth-font-ui)',
+              fontSize: 12,
+              lineHeight: 1.5,
+              color: 'var(--cth-ink-600)'
+            }}>
+              {loadError ?? 'No assignments yet.'}
+              {harnessHome && (
+                <>
+                  {' '}File: <code style={{ fontSize: 11 }}>{harnessHome}/{ASSIGNMENTS_FILE}</code>
+                  {' '}— array of <code style={{ fontSize: 11 }}>{'{"hire","project"}'}</code> objects.
+                </>
+              )}
+            </div>
+          ) : assignments.map((assignment, idx) => (
             <div
-              key={idx}
+              key={`${assignment.hire}-${assignment.project}`}
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 paddingBottom: 12,
                 marginBottom: 12,
-                borderBottom: idx < PROJECTS.length - 1 ? '1px solid var(--cth-ink-200)' : 'none',
+                borderBottom: idx < assignments.length - 1 ? '1px solid var(--cth-ink-200)' : 'none',
                 gap: 8
               }}
             >
