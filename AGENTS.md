@@ -49,7 +49,8 @@ This repo is a fork of [chaitanyagiri/munder-difflin](https://github.com/chaitan
 
 Do not commit hardcoded personal assignments, project names, API keys, or machine-specific paths.
 
-- Local notes belong under `.docs/` (gitignored).
+- **`.docs/`** is the user's personal documentation folder (gitignored). It is **not** intended for upstream PRs or the public repo — never include `.docs/` files in commits or pull requests unless the user explicitly asks.
+- **Do not edit or delete files under `.docs/`** without explicit permission from the user in that conversation. Reading is fine when relevant to the task.
 - Runtime/user data belongs under the app’s harness home / userData paths, not in shared components.
 
 ## Commits (when the user asks)
