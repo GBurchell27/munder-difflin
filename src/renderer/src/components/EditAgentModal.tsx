@@ -72,7 +72,7 @@ export function EditAgentModal({ agent, onClose }: EditAgentModalProps) {
 
   const save = () => {
     const trimmedName = name.trim() || agent.name;
-    const trimmedDescription = description.trim() || 'a fresh harness';
+    const trimmedDescription = description.trim() || agent.description.trim() || 'a fresh harness';
     const trimmedGoal = goal.trim();
     const command = config
       ? buildSpawnCommand(config, model, provider)
@@ -88,6 +88,7 @@ export function EditAgentModal({ agent, onClose }: EditAgentModalProps) {
       description: trimmedDescription,
       goal: trimmedGoal || undefined
     });
+    void window.cth.hivePatchAgentRole(agent.id, trimmedDescription).catch(() => { /* hive optional */ });
     onClose();
   };
 
@@ -243,12 +244,12 @@ export function EditAgentModal({ agent, onClose }: EditAgentModalProps) {
               </span>
             </Section>
 
-            <Section label="Briefing" hint="description · goal">
-              <Row label="Description">
+            <Section label="Briefing" hint="role · goal">
+              <Row label="Role">
                 <input
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="what is this agent for"
+                  placeholder="job — what this agent is for, not live status"
                   style={inputStyle}
                 />
               </Row>
